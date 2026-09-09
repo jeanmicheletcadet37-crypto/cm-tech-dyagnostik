@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CM TECH SOLUTION Dyagnostik — Sistèm Teknisyen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F2F4F7;
+    --panel: #FFFFFF;
+    --panel-border: #E2E6EC;
+    --ink: #171B22;
+    --ink-soft: #5B6472;
+    --ink-faint: #8A93A2;
+    --accent: #0E7C86;
+    --accent-ink: #075158;
+    --accent-soft: #E3F2F1;
+    --ok: #1E8E5A;
+    --ok-soft: #E6F5EC;
+    --warn: #B7791F;
+    --warn-soft: #FBF1DF;
+    --crit: #C0392B;
+    --crit-soft: #FBEAE8;
+    --line: #E2E6EC;
+    --radius: 10px;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; }
+  a{ color:inherit; }
+  .shell{ max-width:1180px; margin:0 auto; padding:20px 20px 60px; }
+
+  #login-view{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-card{ width:100%; max-width:360px; background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius); padding:32px 28px; }
+  .login-card .brand-mark{ width:38px; height:38px; border-radius:9px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--mono); font-weight:600; font-size:14px; margin-bottom:18px; }
+  .login-card h1{ font-size:17px; margin:0 0 4px; font-weight:600; letter-spacing:-0.01em; }
+  .login-card p.sub{ font-size:12.5px; color:var(--ink-faint); margin:0 0 24px; line-height:1.5; }
+  .login-error{ background:var(--crit-soft); color:var(--crit); border:1px solid #EFC2BC; border-radius:8px; padding:9px 12px; font-size:12.5px; margin-bottom:16px; display:none; }
+  .login-error.show{ display:block; }
+  .demo-note{ margin-top:20px; padding-top:16px; border-top:1px dashed var(--line); font-size:11.5px; color:var(--ink-faint); line-height:1.6; font-family:var(--mono); }
+
+  header.top{ display:flex; align-items:center; justify-content:space-between; padding:14px 4px 18px; border-bottom:1px solid var(--line); flex-wrap:wrap; gap:12px; }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{ width:34px; height:34px; border-radius:8px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--mono); font-weight:600; font-size:13px; letter-spacing:-0.02em; }
+  .brand-text h1{ font-size:15px; margin:0; font-weight:600; letter-spacing:-0.01em; }
+  .brand-text p{ margin:1px 0 0; font-size:12.5px; color:var(--ink-faint); }
+  .top-right{ display:flex; align-items:center; gap:14px; }
+  .who{ text-align:right; line-height:1.4; }
+  .who .name{ font-size:13px; font-weight:600; }
+  .who .biz{ font-size:11.5px; color:var(--ink-faint); font-family:var(--mono); }
+  .logout-btn{ background:#fff; border:1px solid var(--line); color:var(--ink-soft); font-size:12.5px; font-weight:500; padding:8px 12px; border-radius:8px; }
+  .logout-btn:hover{ border-color:var(--crit); color:var(--crit); }
+
+  .tabs{ display:flex; gap:4px; padding:14px 4px 0; margin-bottom:22px; }
+  .tab-btn{ background:transparent; border:none; padding:9px 4px; font-size:13px; font-weight:500; color:var(--ink-faint); border-bottom:2px solid transparent; margin-right:18px; }
+  .tab-btn.active{ color:var(--ink); border-bottom-color:var(--accent); font-weight:600; }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  .grid{ display:grid; grid-template-columns: 340px 1fr; gap:20px; align-items:start; }
+  @media (max-width: 860px){ .grid{ grid-template-columns: 1fr; } }
+
+  .panel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--radius); padding:22px; }
+  .panel + .panel{ margin-top:20px; }
+  .panel h2{ font-size:13px; margin:0 0 4px; font-weight:600; }
+  .panel .sub{ font-size:12.5px; color:var(--ink-faint); margin:0 0 18px; line-height:1.5; }
+
+  label{ display:block; font-size:12.5px; font-weight:500; color:var(--ink-soft); margin-bottom:6px; }
+  .field{ margin-bottom:16px; }
+  input[type=text], input[type=password], select, textarea{ width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; font-family:var(--sans); font-size:14px; color:var(--ink); }
+  input[name=imei]{ font-family:var(--mono); letter-spacing:0.02em; }
+  input:focus, select:focus, textarea:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .hint{ font-size:11.5px; color:var(--ink-faint); margin-top:5px; }
+  .hint.err{ color:var(--crit); }
+
+  button{ font-family:var(--sans); cursor:pointer; border:none; }
+  .btn-primary{ width:100%; background:var(--accent); color:#fff; font-size:14px; font-weight:600; padding:12px 14px; border-radius:8px; transition:background .15s ease; }
+  .btn-primary:hover{ background:var(--accent-ink); }
+  .btn-primary:disabled{ background:#C7CDD6; cursor:not-allowed; }
+  .btn-fix{ background:var(--ok); color:#fff; font-size:13.5px; font-weight:600; padding:10px 16px; border-radius:8px; }
+  .btn-fix:hover{ background:#166F48; }
+  .btn-danger-ghost{ background:transparent; border:1px solid var(--line); color:var(--crit); font-size:11.5px; font-weight:500; padding:5px 10px; border-radius:6px; }
+  .btn-danger-ghost:hover{ background:var(--crit-soft); border-color:#EFC2BC; }
+
+  .quick-list{ display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+  .quick-list button{ text-align:left; background:#fff; border:1px solid var(--line); border-radius:8px; padding:9px 11px; font-size:12.5px; color:var(--ink-soft); font-family:var(--mono); }
+  .quick-list button:hover{ border-color:var(--accent); color:var(--accent-ink); }
+
+  .empty-state{ display:flex; flex-direction:column; align-items:flex-start; justify-content:center; min-height:340px; color:var(--ink-faint); padding:10px 4px; }
+  .empty-state .glyph{ font-family:var(--mono); font-size:26px; color:var(--ink-faint); margin-bottom:14px; }
+  .empty-state h3{ font-size:14.5px; color:var(--ink-soft); margin:0 0 6px; font-weight:600; }
+  .empty-state p{ font-size:13px; max-width:340px; line-height:1.55; margin:0; }
+
+  .imei-strip{ display:flex; align-items:center; justify-content:space-between; font-family:var(--mono); font-size:13px; padding-bottom:16px; margin-bottom:18px; border-bottom:1px solid var(--line); }
+  .imei-strip .id{ color:var(--ink); font-weight:500; }
+  .imei-strip .cat{ color:var(--ink-faint); }
+
+  .steps{ list-style:none; margin:0 0 22px; padding:0; display:flex; flex-direction:column; gap:0; }
+  .step{ display:grid; grid-template-columns: 26px 1fr auto; gap:12px; align-items:start; padding:11px 0; border-bottom:1px dashed var(--line); font-size:13.5px; }
+  .step:last-child{ border-bottom:none; }
+  .step .n{ font-family:var(--mono); font-size:11.5px; color:var(--ink-faint); padding-top:2px; }
+  .step .body b{ font-weight:600; }
+  .step .body .detail{ display:block; font-family:var(--mono); font-size:12px; color:var(--ink-faint); margin-top:3px; }
+  .step .status{ font-family:var(--mono); font-size:11.5px; font-weight:600; padding:2px 8px; border-radius:5px; white-space:nowrap; height:fit-content; }
+  .status.ok{ background:var(--ok-soft); color:var(--ok); }
+  .status.warn{ background:var(--warn-soft); color:var(--warn); }
+  .status.crit{ background:var(--crit-soft); color:var(--crit); }
+  .status.info{ background:var(--accent-soft); color:var(--accent-ink); }
+
+  .verdict{ border-radius:var(--radius); padding:20px; border:1px solid var(--line); }
+  .verdict.tone-ok{ background:var(--ok-soft); border-color:#BFE3CE; }
+  .verdict.tone-warn{ background:var(--warn-soft); border-color:#EFD9AA; }
+  .verdict.tone-crit{ background:var(--crit-soft); border-color:#EFC2BC; }
+  .verdict.tone-info{ background:var(--accent-soft); border-color:#BEDEDC; }
+  .verdict .eyebrow{ font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+  .verdict h3{ margin:0 0 8px; font-size:16px; font-weight:600; letter-spacing:-0.01em; }
+  .verdict p{ margin:0 0 14px; font-size:13.5px; line-height:1.6; color:var(--ink-soft); max-width:640px; }
+  .verdict .meta-row{ display:flex; gap:24px; flex-wrap:wrap; margin-bottom:16px; }
+  .verdict .meta-row div{ font-size:12.5px; }
+  .verdict .meta-row .k{ color:var(--ink-faint); display:block; margin-bottom:2px; }
+  .verdict .meta-row .v{ font-weight:600; font-family:var(--mono); font-size:12.5px; }
+  .verdict .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .verdict .resolved-tag{ font-size:12.5px; font-weight:600; color:var(--ok); font-family:var(--mono); }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:left; font-size:11.5px; font-weight:600; color:var(--ink-faint); padding:0 10px 10px 0; border-bottom:1px solid var(--line); }
+  tbody td{ padding:11px 10px 11px 0; border-bottom:1px solid #EEF0F3; vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  td.imei{ font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); }
+  td.time{ font-family:var(--mono); font-size:12px; color:var(--ink-faint); white-space:nowrap; }
+  .pill{ display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:5px; font-family:var(--mono); }
+  .pill.ok{ background:var(--ok-soft); color:var(--ok); }
+  .pill.warn{ background:var(--warn-soft); color:var(--warn); }
+  .pill.crit{ background:var(--crit-soft); color:var(--crit); }
+  .pill.admin{ background:var(--accent-soft); color:var(--accent-ink); }
+  .hist-empty, .admin-empty{ color:var(--ink-faint); font-size:13px; padding:20px 0; }
+
+  .admin-grid{ display:grid; grid-template-columns: 340px 1fr; gap:20px; align-items:start; }
+  @media (max-width: 860px){ .admin-grid{ grid-template-columns: 1fr; } }
+  .row-actions{ display:flex; gap:6px; }
+
+  .toast{ position:fixed; bottom:20px; right:20px; background:var(--ink); color:#fff; padding:10px 16px; border-radius:8px; font-size:13px; opacity:0; transform:translateY(8px); transition:all .2s ease; pointer-events:none; }
+  .toast.show{ opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="login-view">
+  <div class="login-card">
+    <div class="brand-mark">CM</div>
+    <h1>CM TECH SOLUTION Dyagnostik</h1>
+    <p class="sub">Konekte ak kont teknisyen ou pou kontinye.</p>
+    <div class="login-error" id="login-error">Non itilizatè oswa modpas la pa kòrèk.</div>
+    <form id="login-form">
+      <div class="field">
+        <label for="login-user">Non itilizatè</label>
+        <input type="text" id="login-user" autocomplete="username" placeholder="egzanp: jphilippe">
+      </div>
+      <div class="field">
+        <label for="login-pass">Modpas</label>
+        <input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn-primary">Konekte</button>
+    </form>
+    <div class="demo-note">
+      Kont demo — admin: <b>admin</b> / <b>admin123</b><br>
+      Kont demo — teknisyen: <b>demo</b> / <b>demo123</b>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="app-view" style="display:none;">
+
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">CM</div>
+      <div class="brand-text">
+        <h1>CM TECH SOLUTION Dyagnostik</h1>
+        <p>Sistèm entèn — pou teknisyen sèlman</p>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="who">
+        <div class="name" id="who-name">—</div>
+        <div class="biz" id="who-biz">—</div>
+      </div>
+      <button class="logout-btn" id="logout-btn">Dekonekte</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-view="diag-view">Dyagnostik</button>
+    <button class="tab-btn" data-view="admin-view" id="admin-tab" style="display:none;">Jesyon Teknisyen</button>
+  </nav>
+
+  <div class="view active" id="diag-view">
+    <div class="grid">
+      <div>
+        <div class="panel">
+          <h2>Antre done aparèy la</h2>
+          <p class="sub">Antre IMEI kliyan an ak yon deskripsyon pwoblèm nan pou sistèm nan idantifye vrè kòz la.</p>
+          <form id="diag-form">
+            <div class="field">
+              <label for="imei">Nimewo IMEI</label>
+              <input type="text" id="imei" name="imei" maxlength="15" inputmode="numeric" placeholder="Egzanp: 356938035643809" autocomplete="off">
+              <div class="hint" id="imei-hint">Antre 15 chif IMEI aparèy la.</div>
+            </div>
+            <div class="field">
+              <label for="category">Kategori pwoblèm</label>
+              <select id="category" name="category">
+                <option value="account_verify">Paka verifye kont pou fè apèl</option>
+                <option value="cant_call">Paka fè apèl</option>
+                <option value="no_signal">Pa gen rezo / siyal</option>
+                <option value="no_data">Pa gen done mobil</option>
+                <option value="other">Lòt pwoblèm</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="notes">Nòt teknisyen (opsyonèl)</label>
+              <textarea id="notes" name="notes" rows="2" placeholder="Sa kliyan an di, oswa sa w remake..."></textarea>
+            </div>
+            <button type="submit" class="btn-primary" id="run-btn">Kouri Dyagnostik</button>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>IMEI tès rapid</h2>
+          <p class="sub">Klike pou chaje yon egzanp ak teste diferan senaryo.</p>
+          <div class="quick-list" id="quick-list"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel" id="result-panel">
+          <div class="empty-state" id="empty-state">
+            <div class="glyph">DX_</div>
+            <h3>Poko gen dyagnostik ki kouri</h3>
+            <p>Antre yon IMEI ak yon kategori pwoblèm sou goch la, epi klike "Kouri Dyagnostik" pou sistèm nan analize aparèy la epi idantifye vrè sous pwoblèm nan.</p>
+          </div>
+          <div id="result-content" style="display:none;"></div>
+        </div>
+        <div class="panel">
+          <h2>Istorik biznis ou</h2>
+          <p class="sub">Dyagnostik ki kouri pou tout teknisyen nan menm biznis ou — sove sou sèvè a.</p>
+          <div id="history-wrap">
+            <div class="hist-empty" id="history-empty">Ap chaje istorik...</div>
+            <table id="history-table" style="display:none;">
+              <thead><tr><th>Lè</th><th>Teknisyen</th><th>IMEI</th><th>Pwoblèm</th><th>Kòz idantifye</th><th>Rezilta</th></tr></thead>
+              <tbody id="history-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="admin-view">
+    <div class="admin-grid">
+      <div>
+        <div class="panel">
+          <h2>Ajoute yon teknisyen</h2>
+          <p class="sub">Kreye yon nouvo kont teknisyen pou yon biznis ki egziste, oswa pou yon nouvo biznis.</p>
+          <form id="add-tech-form">
+            <div class="field"><label for="t-name">Non konplè</label><input type="text" id="t-name" placeholder="Egzanp: Jean Philippe"></div>
+            <div class="field"><label for="t-user">Non itilizatè</label><input type="text" id="t-user" placeholder="Egzanp: jphilippe" autocomplete="off"></div>
+            <div class="field"><label for="t-pass">Modpas</label><input type="text" id="t-pass" placeholder="Modpas tanporè" autocomplete="off"></div>
+            <div class="field"><label for="t-biz">Biznis</label><select id="t-biz"></select></div>
+            <div class="field"><label for="t-new-biz">— OSWA kreye yon nouvo biznis</label><input type="text" id="t-new-biz" placeholder="Non nouvo biznis (kite vid si w ap itilize youn ki egziste)"></div>
+            <div class="field"><label for="t-role">Wòl</label><select id="t-role"><option value="tech">Teknisyen</option><option value="admin">Admin</option></select></div>
+            <button type="submit" class="btn-primary">Ajoute Teknisyen</button>
+          </form>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <h2>Tout teknisyen</h2>
+          <p class="sub">Lis tout kont ki gen aksè nan sistèm nan, gwoupe pa biznis.</p>
+          <div id="admin-empty" class="admin-empty" style="display:none;">Pa gen teknisyen ankò.</div>
+          <table id="admin-table">
+            <thead><tr><th>Non</th><th>Non itilizatè</th><th>Biznis</th><th>Wòl</th><th></th></tr></thead>
+            <tbody id="admin-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   KLIYAN API — tout apèl rezo pase pa isit la
+   ============================================================ */
+
+const API = "";
+let TOKEN = sessionStorage.getItem("cm_token") || null;
+let CURRENT_USER = null;
+
+async function api(path, opts = {}) {
+  const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+  if (TOKEN) headers["Authorization"] = "Bearer " + TOKEN;
+  const res = await fetch(API + path, Object.assign({}, opts, { headers }));
+  let body = {};
+  try { body = await res.json(); } catch (e) {}
+  if (!res.ok) throw { status: res.status, error: body.error || "Erè" };
+  return body;
+}
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ============================================================
+   OTANTIFIKASYON
+   ============================================================ */
+
+async function tryLogin(username, password){
+  try{
+    const { token, user } = await api("/api/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password })
+    });
+    TOKEN = token;
+    sessionStorage.setItem("cm_token", token);
+    CURRENT_USER = user;
+    await showApp();
+    return true;
+  } catch(e){
+    return false;
+  }
+}
+
+async function tryRestoreSession(){
+  if (!TOKEN) return false;
+  try{
+    const { user } = await api("/api/me");
+    CURRENT_USER = user;
+    await showApp();
+    return true;
+  } catch(e){
+    TOKEN = null;
+    sessionStorage.removeItem("cm_token");
+    return false;
+  }
+}
+
+function logout(){
+  TOKEN = null;
+  CURRENT_USER = null;
+  sessionStorage.removeItem("cm_token");
+  document.getElementById("app-view").style.display = "none";
+  document.getElementById("login-view").style.display = "flex";
+  document.getElementById("login-form").reset();
+}
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const u = document.getElementById("login-user").value;
+  const p = document.getElementById("login-pass").value;
+  const ok = await tryLogin(u, p);
+  document.getElementById("login-error").classList.toggle("show", !ok);
+});
+document.getElementById("logout-btn").addEventListener("click", logout);
+
+async function showApp(){
+  document.getElementById("login-view").style.display = "none";
+  document.getElementById("app-view").style.display = "block";
+  document.getElementById("who-name").textContent = CURRENT_USER.name;
+  document.getElementById("who-biz").textContent = CURRENT_USER.businessName + " — " + (CURRENT_USER.role === "admin" ? "Admin" : "Teknisyen");
+
+  const adminTab = document.getElementById("admin-tab");
+  if (CURRENT_USER.role === "admin"){
+    adminTab.style.display = "inline-block";
+    await populateBizSelect();
+    await renderAdminTable();
+  } else {
+    adminTab.style.display = "none";
+    switchView("diag-view");
+  }
+  await renderHistory();
+}
+
+/* ============================================================
+   ONGLE
+   ============================================================ */
+
+function switchView(viewId){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById(viewId).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.view === viewId));
+}
+document.getElementById("tabs").addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab-btn");
+  if (!btn) return;
+  if (btn.id === "admin-tab" && CURRENT_USER.role !== "admin") return;
+  switchView(btn.dataset.view);
+});
+
+/* ============================================================
+   JESYON TEKNISYEN (ADMIN)
+   ============================================================ */
+
+async function populateBizSelect(){
+  const { businesses } = await api("/api/businesses");
+  const sel = document.getElementById("t-biz");
+  sel.innerHTML = businesses.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
+}
+
+async function renderAdminTable(){
+  const { technicians } = await api("/api/technicians");
+  const body = document.getElementById("admin-body");
+  const empty = document.getElementById("admin-empty");
+  const table = document.getElementById("admin-table");
+
+  if (technicians.length === 0){
+    empty.style.display = "block"; table.style.display = "none"; return;
+  }
+  empty.style.display = "none"; table.style.display = "table";
+
+  body.innerHTML = technicians.map(u => `
+    <tr>
+      <td>${u.name}</td>
+      <td class="imei">${u.username}</td>
+      <td>${u.businessName}</td>
+      <td>${u.role === "admin" ? '<span class="pill admin">Admin</span>' : '<span class="pill ok">Teknisyen</span>'}</td>
+      <td class="row-actions">${u.id === CURRENT_USER.id ? "" : `<button type="button" class="btn-danger-ghost" data-del="${u.id}">Retire</button>`}</td>
+    </tr>
+  `).join("");
+
+  body.querySelectorAll("[data-del]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      try{
+        await api("/api/technicians/" + btn.dataset.del, { method: "DELETE" });
+        await renderAdminTable();
+        showToast("Teknisyen retire.");
+      } catch(e){ showToast(e.error || "Erè"); }
+    });
+  });
+}
+
+document.getElementById("add-tech-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("t-name").value.trim();
+  const username = document.getElementById("t-user").value.trim();
+  const password = document.getElementById("t-pass").value.trim();
+  const role = document.getElementById("t-role").value;
+  const newBusinessName = document.getElementById("t-new-biz").value.trim();
+  const businessId = document.getElementById("t-biz").value;
+
+  try{
+    await api("/api/technicians", {
+      method: "POST",
+      body: JSON.stringify({ name, username, password, role, businessId, newBusinessName })
+    });
+    await populateBizSelect();
+    await renderAdminTable();
+    document.getElementById("add-tech-form").reset();
+    showToast("Teknisyen ajoute.");
+  } catch(e){
+    showToast(e.error || "Erè pandan ajoute teknisyen an.");
+  }
+});
+
+/* ============================================================
+   MOTÈ DYAGNOSTIK (lojik la rete koste kliyan an — rapid, san
+   depann de rezo pou chak etap; se sèlman rezilta final la ki
+   anrejistre sou sèvè a pou istorik pataje a)
+   ============================================================ */
+
+const CATEGORY_LABELS = {
+  account_verify: "Paka verifye kont", cant_call: "Paka fè apèl",
+  no_signal: "Pa gen rezo", no_data: "Pa gen done mobil", other: "Lòt pwoblèm"
+};
+
+const SCENARIOS = {
+  account_verify: [
+    { key:"locked_attempts", cause:"Kont lock akoz plizyè tantativ modpas ki echwe", detail:"Sistèm verifikasyon an te bloke kont lan otomatikman apre 5 tantativ ki echwe.", resolvable:true, tone:"ok", action:"Retire lock la epi reyisyalize kont verifikasyon an.", fixMsg:"Lock la retire — kont lan verifye e disponib pou apèl." },
+    { key:"debt_suspend", cause:"Liy sispann pou balans/dèt ki poko peye", detail:"Kont lan gen yon balans ki depase limit otorize a.", resolvable:false, tone:"warn", action:"Enfòme kliyan an li bezwen regle balans lan avan liy lan ka reyaktive.", fixMsg:null },
+    { key:"server_sync", cause:"Erè tanporè nan sèvè verifikasyon kont lan", detail:"Sèvè a pa t reponn nan dènye 3 tantativ senkwonizasyon.", resolvable:true, tone:"ok", action:"Fòse yon resenkwonizasyon ant aparèy la ak sèvè kont lan.", fixMsg:"Resenkwonizasyon fèt — kont lan verifye kounye a." },
+    { key:"sim_mismatch", cause:"SIM aktyèl la pa matche ak kont ki anrejistre a", detail:"Nimewo SIM (ICCID) aparèy la pa menm ak sa ki nan dosye kont lan.", resolvable:false, tone:"info", action:"Teknisyen dwe re-anrejistre SIM lan sou kont kliyan an manyèlman.", fixMsg:null }
+  ],
+  cant_call: [
+    { key:"call_barred", cause:"Blokaj apèl aktive sou kont lan", detail:"Yon règ blokaj (call barring) aktif sou kont lan depi dènye chanjman plan.", resolvable:true, tone:"ok", action:"Retire blokaj apèl la sou kont lan.", fixMsg:"Blokaj la retire — aparèy la ka fè apèl kounye a." },
+    { key:"line_suspended", cause:"Liy sispann pou frè ki pa peye", detail:"Estati liy lan make 'sispann pou balans' depi 4 jou.", resolvable:false, tone:"warn", action:"Kliyan an dwe regle peman an pou liy lan reyaktive.", fixMsg:null },
+    { key:"coverage_gap", cause:"Pa gen kouvèti rezo nan zòn aparèy la ye a", detail:"Dènye pozisyon rezo a montre aparèy la deyò zòn kouvèti operatè a.", resolvable:false, tone:"crit", action:"Sa se yon pwoblèm enfrastrikti rezo — pa gen aksyon lojisyèl posib.", fixMsg:null },
+    { key:"apn_config", cause:"Konfigirasyon rezo (APN) mal réglé sou aparèy la", detail:"Paramèt APN aparèy la pa matche ak sa operatè a mande.", resolvable:false, tone:"info", action:"Teknisyen dwe antre bon paramèt APN manyèlman sou aparèy la.", fixMsg:null }
+  ],
+  no_signal: [
+    { key:"no_coverage", cause:"Aparèy la deyò zòn kouvèti rezo a", detail:"Pa gen okenn antèn ki reyponn nan zòn kote aparèy la dènyèman ye a.", resolvable:false, tone:"crit", action:"Pa gen aksyon lojisyèl — se yon limit rezo/enfrastrikti.", fixMsg:null },
+    { key:"airplane_mode", cause:"Aparèy la gen mòd avyon oswa rezo dezaktive", detail:"Dènye siyal aparèy la montre yon dekonèksyon manyèl.", resolvable:false, tone:"info", action:"Gide kliyan/teknisyen pou verifye paramèt rezo aparèy la.", fixMsg:null },
+    { key:"sim_damage", cause:"SIM domaje oswa pa byen enstale", detail:"Aparèy la pa detekte okenn kat SIM valid depi dènye tès la.", resolvable:false, tone:"crit", action:"Ranplase oswa reinstale kat SIM la manyèlman.", fixMsg:null },
+    { key:"line_suspended_sig", cause:"Liy sispann sou kont lan", detail:"Kont lan make 'sispann' — sa anpeche tout siyal rezo.", resolvable:false, tone:"warn", action:"Kliyan an dwe regle sitiyasyon kont lan pou rezo a retounen.", fixMsg:null }
+  ],
+  no_data: [
+    { key:"data_disabled", cause:"Done mobil dezaktive nan konfigirasyon kont lan", detail:"Paramèt kont lan montre done mobil OFF pou liy sa a.", resolvable:true, tone:"ok", action:"Aktive done mobil la sou kont lan.", fixMsg:"Done mobil aktive — koneksyon done a disponib kounye a." },
+    { key:"plan_exhausted", cause:"Forfè done a fini pou peryòd aktyèl la", detail:"Kliyan an itilize 100% done ki disponib nan plan li a.", resolvable:false, tone:"warn", action:"Enfòme kliyan an sou opsyon rechaj oswa n ap tann renouvèlman plan an.", fixMsg:null },
+    { key:"apn_data", cause:"APN mal konfigire pou done mobil", detail:"Aparèy la pa gen bon paramèt APN pou done.", resolvable:false, tone:"info", action:"Teknisyen dwe antre bon paramèt APN done manyèlman.", fixMsg:null },
+    { key:"server_glitch", cause:"Erè tanporè nan sèvè jesyon done a", detail:"Sèvè done a pa t reponn kòrèkteman nan dènye verifikasyon an.", resolvable:true, tone:"ok", action:"Reyisyalize koneksyon done a bò sèvè a.", fixMsg:"Koneksyon done a reyisyalize — done mobil disponib." }
+  ],
+  other: [
+    { key:"inconclusive", cause:"Sentòm yo pa matche yon modèl konni", detail:"Dyagnostik otomatik la pa jwenn yon kòz klè nan done ki disponib yo.", resolvable:false, tone:"info", action:"Voye ka a bay yon teknisyen siperyè pou yon envestigasyon pi apwofondi.", fixMsg:null }
+  ]
+};
+
+function hashImei(imei){ let h=0; for (let i=0;i<imei.length;i++) h=(h*31+imei.charCodeAt(i))>>>0; return h; }
+function pickScenario(imei, category){ const list = SCENARIOS[category] || SCENARIOS.other; return list[hashImei(imei+category)%list.length]; }
+function fakeAccountStatus(imei){ const s=["aktif","aktif","aktif","sispann pasyèl","aktif"]; return s[hashImei(imei+"acct")%s.length]; }
+function fakeSignal(imei){ return 30 + (hashImei(imei+"sig")%65); }
+function fakeLastSeen(imei){ const m=1+(hashImei(imei+"seen")%240); return m<60 ? m+" minit pase" : Math.floor(m/60)+" èdtan pase"; }
+function toneStatusWord(tone){
+  if (tone==="ok") return {cls:"ok", word:"REZOLIB"};
+  if (tone==="warn") return {cls:"warn", word:"AKSYON KLIYAN"};
+  if (tone==="crit") return {cls:"crit", word:"ENFRASTRIKTI"};
+  return {cls:"info", word:"MANYÈL"};
+}
+
+let currentCase = null;
+
+function runDiagnostic(imei, category, notes){
+  const scenario = pickScenario(imei, category);
+  const acctStatus = fakeAccountStatus(imei);
+  const signal = fakeSignal(imei);
+  const lastSeen = fakeLastSeen(imei);
+  currentCase = { imei, category, notes, scenario, acctStatus, signal, lastSeen, resolved:false, remoteId:null };
+  renderResult(currentCase);
+}
+
+function renderResult(c){
+  document.getElementById("empty-state").style.display = "none";
+  const wrap = document.getElementById("result-content");
+  wrap.style.display = "block";
+
+  const t = toneStatusWord(c.scenario.tone);
+  const maskedImei = c.imei.slice(0,6) + "•••••" + c.imei.slice(-4);
+
+  const steps = [
+    { label:"Verifikasyon IMEI", detail:c.imei, status:{cls:"ok", word:"JWENN"} },
+    { label:"Estati kont", detail:"Kont: " + c.acctStatus, status: c.acctStatus === "aktif" ? {cls:"ok", word:"OK"} : {cls:"warn", word:"ATANSYON"} },
+    { label:"Fòs siyal / dènye koneksyon", detail:"Siyal: " + c.signal + "% — dènye koneksyon " + c.lastSeen, status: c.signal > 50 ? {cls:"ok", word:"OK"} : {cls:"warn", word:"FÈB"} },
+    { label:"Analiz kategori pwoblèm — " + CATEGORY_LABELS[c.category], detail: c.notes ? ("Nòt: " + c.notes) : "Pa gen nòt adisyonèl", status:{cls:"info", word:"ANALIZE"} },
+    { label:"Idantifikasyon kòz", detail:c.scenario.cause, status:t }
+  ];
+
+  const stepsHtml = steps.map((s,i)=>`
+    <li class="step"><span class="n">${i+1}</span>
+      <span class="body"><b>${s.label}</b><span class="detail">${s.detail}</span></span>
+      <span class="status ${s.status.cls}">${s.status.word}</span></li>`).join("");
+
+  const toneClassMap = {ok:"tone-ok", warn:"tone-warn", crit:"tone-crit", info:"tone-info"};
+  const eyebrowMap = { ok:"Ka ranje otomatikman", warn:"Mande aksyon kliyan", crit:"Limit enfrastrikti rezo", info:"Mande entèvansyon teknisyen" };
+
+  let actionsHtml;
+  if (c.scenario.resolvable && !c.resolved) actionsHtml = `<button class="btn-fix" id="fix-btn">Ranje Otomatikman</button>`;
+  else if (c.resolved) actionsHtml = `<span class="resolved-tag">✓ Rezoud — ${c.scenario.fixMsg}</span>`;
+  else actionsHtml = `<span style="font-size:12.5px; color:var(--ink-faint);">Aksyon mande men manyèl.</span>`;
+
+  wrap.innerHTML = `
+    <div class="imei-strip"><span class="id">IMEI ${maskedImei}</span><span class="cat">${CATEGORY_LABELS[c.category]}</span></div>
+    <ul class="steps">${stepsHtml}</ul>
+    <div class="verdict ${toneClassMap[c.scenario.tone]}">
+      <div class="eyebrow">${eyebrowMap[c.scenario.tone]}</div>
+      <h3>${c.scenario.cause}</h3>
+      <p>${c.scenario.detail}</p>
+      <div class="meta-row">
+        <div><span class="k">Kategori kòz</span><span class="v">${categoryOfTone(c.scenario.tone)}</span></div>
+        <div><span class="k">Aksyon rekòmande</span><span class="v" style="font-weight:500; font-family:var(--sans); font-size:13px;">${c.scenario.action}</span></div>
+      </div>
+      <div class="actions">${actionsHtml}</div>
+    </div>`;
+
+  const fixBtn = document.getElementById("fix-btn");
+  if (fixBtn){
+    fixBtn.addEventListener("click", async () => {
+      c.resolved = true;
+      renderResult(c);
+      if (c.remoteId){
+        try{ await api("/api/diagnostics/" + c.remoteId, { method:"PATCH", body: JSON.stringify({ resolved:true }) }); } catch(e){}
+      }
+      await renderHistory();
+    });
+  }
+}
+
+function categoryOfTone(tone){
+  if (tone==="ok") return "Kont / Rezo — otomatik";
+  if (tone==="warn") return "Kont kliyan";
+  if (tone==="crit") return "Enfrastrikti rezo";
+  return "Konfigirasyon / Fizik";
+}
+
+async function renderHistory(){
+  const empty = document.getElementById("history-empty");
+  const table = document.getElementById("history-table");
+  const body = document.getElementById("history-body");
+  let diagnostics = [];
+  try{
+    const r = await api("/api/diagnostics");
+    diagnostics = r.diagnostics;
+  } catch(e){}
+
+  if (diagnostics.length === 0){ empty.textContent = "Pa gen dyagnostik nan istorik la pou kounye a."; empty.style.display="block"; table.style.display="none"; return; }
+  empty.style.display = "none"; table.style.display = "table";
+
+  body.innerHTML = diagnostics.map(d => {
+    const masked = d.imei.slice(0,6) + "•••••" + d.imei.slice(-4);
+    const time = new Date(d.createdAt).toLocaleString('fr-FR', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
+    let pill;
+    if (d.resolved) pill = `<span class="pill ok">Rezoud otomatikman</span>`;
+    else if (d.tone === "warn") pill = `<span class="pill warn">Aksyon kliyan mande</span>`;
+    else if (d.tone === "crit") pill = `<span class="pill crit">Enfrastrikti</span>`;
+    else pill = `<span class="pill warn">Mande teknisyen</span>`;
+    return `<tr><td class="time">${time}</td><td>${d.technicianName}</td><td class="imei">${masked}</td><td>${CATEGORY_LABELS[d.category]}</td><td>${d.cause}</td><td>${pill}</td></tr>`;
+  }).join("");
+}
+
+const QUICK_EXAMPLES = [
+  { imei:"356938035643809", category:"account_verify", label:"356938035643809 — Paka verifye kont" },
+  { imei:"490154203237518", category:"cant_call", label:"490154203237518 — Paka fè apèl" },
+  { imei:"013888003685477", category:"no_signal", label:"013888003685477 — Pa gen rezo" },
+  { imei:"352094081234567", category:"no_data", label:"352094081234567 — Pa gen done mobil" }
+];
+
+function initQuickList(){
+  const wrap = document.getElementById("quick-list");
+  wrap.innerHTML = QUICK_EXAMPLES.map((ex,i)=>`<button type="button" data-i="${i}">${ex.label}</button>`).join("");
+  wrap.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const ex = QUICK_EXAMPLES[btn.dataset.i];
+      document.getElementById("imei").value = ex.imei;
+      document.getElementById("category").value = ex.category;
+      validateImei();
+    });
+  });
+}
+
+function validateImei(){
+  const val = document.getElementById("imei").value.trim();
+  const hint = document.getElementById("imei-hint");
+  const digitsOnly = /^[0-9]*$/.test(val);
+  if (val.length === 0){ hint.textContent = "Antre 15 chif IMEI aparèy la."; hint.classList.remove("err"); return false; }
+  if (!digitsOnly){ hint.textContent = "IMEI dwe gen chif sèlman."; hint.classList.add("err"); return false; }
+  if (val.length !== 15){ hint.textContent = val.length + "/15 chif — kontinye antre."; hint.classList.add("err"); return false; }
+  hint.textContent = "IMEI valid."; hint.classList.remove("err"); return true;
+}
+document.getElementById("imei").addEventListener("input", validateImei);
+
+document.getElementById("diag-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const imei = document.getElementById("imei").value.trim();
+  const category = document.getElementById("category").value;
+  const notes = document.getElementById("notes").value.trim();
+  if (!validateImei()) return;
+
+  runDiagnostic(imei, category, notes);
+
+  try{
+    const { diagnostic } = await api("/api/diagnostics", {
+      method: "POST",
+      body: JSON.stringify({
+        imei, category, notes,
+        scenarioKey: currentCase.scenario.key,
+        cause: currentCase.scenario.cause,
+        tone: currentCase.scenario.tone,
+        resolved: false
+      })
+    });
+    currentCase.remoteId = diagnostic.id;
+  } catch(e){ showToast("Pa t ka sove istorik la sou sèvè a."); }
+
+  await renderHistory();
+});
+
+initQuickList();
+tryRestoreSession();
+</script>
+</body>
+</html>
